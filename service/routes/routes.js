@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db/connection');
 
 
-app.post('/game', (req, res) => {
+router.post('/game', (req, res) => {
     const data = req.body;
     db.changeUser({
         database: data.database
@@ -19,25 +19,26 @@ app.post('/game', (req, res) => {
 
             const ctr = {};
             result.forEach((x) =>{
-                ctr[x.c1] = x.total_install_clicked * 100.0 / x.total_ad_start;
+                if(x.c1.length > 3)
+                    ctr[x.c1] = x.total_install_clicked * 100.0 / x.total_ad_start;
             });
             let version = 0;
-            query2 = `select max(appversion) as max_appversion from (select appversion from cross_promo_ad_status limit ${data.limit} offset ${data.offset}`;
+            query2 = `select max(appversion) as max_appversion from (select appversion from cross_promo_ad_status limit ${data.limit} offset ${data.offset}) as t`;
             db.query(query2,(err,result) => {
                 if(err) return console.log(err);
                 version = result[0].max_appversion;
-            });
-
-            res.send({
-                version: version,
-                ctr: ctr
+                console.log(version);
+                res.send({
+                    version: version,
+                    ctr: ctr
+                });
             });
         })
     });
 })
 
 
-app.post('/ctr', (req, res) => {
+router.post('/ctr', (req, res) => {
     const data = req.body;
 
     const query = "select appversion,c1, sum(case when install_clicked > 0 then 1 else 0 end) as total_install,sum(case when ad_start > 0 then 1 else 0 end) as total_ad from (select c1,install_clicked,ad_start,appversion from cross_promo_ad_status limit " + data.count + " offset " + data.offset + ") as subquery group by appversion,c1";
