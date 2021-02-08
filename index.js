@@ -1,7 +1,6 @@
 require('dotenv').config()
 
-const routes = require('./service/routes/routes');
-
+const routes = require('/service/routes/routes');
 
 const express = require('express');
 const cors=require('cors');
@@ -23,6 +22,9 @@ app.use(express.urlencoded({limit: '100mb', extended: true}));
 app.use(cors(corsOptions));
 
 app.use('/',routes);
+
+
+
 
 const port = process.env.PORT || 5000;
 
