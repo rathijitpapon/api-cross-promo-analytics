@@ -2,61 +2,92 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+router.post('/versions/:database', async (req, res) => {
+    const database = req.params.database;
+    const limit = req.body.limit;
+    const offset = req.body.offset;
 
-router.post('/game', async (req, res) => {
-    const data = req.body;
     db.changeUser({
-        database: data.database
+        database: database
     }, (err) => {
-        if (err) return res.send({error: err.message});
+        if (err) return res.status(400).send({error: err.message});
 
         let query = `
-            select max(appversion) as max_appversion 
-            from cross_promo_ad_status
+            select 
+                appversion, count(distinct udid) as user_count 
+            from 
+                (select 
+                    appversion, udid
+                from 
+                    cross_promo_ad_status 
+                limit ${limit} offset ${offset}
+                ) as v
+            group by appversion
+            order by appversion
         `;
 
         db.query(query, (err, result) => {
-            if(err) return res.send({error: err.message});
-
-            let max_appversion = 0;
-            result.forEach((x) => {
-                max_appversion = x.max_appversion;
+            if(err) return res.status(500).send({error: err.message});
+            
+            const data = [];
+            result.forEach((x) =>{
+                const versionData = {
+                    version: x.appversion,
+                    user_count: x.user_count
+                }
+                data.push(versionData);
             });
 
-            query = `
-                select
-                    c1,
-                    sum(case when install_clicked > 0 then 1 else 0 end) as total_install_clicked, 
-                    sum(ad_start) as total_ad_start
-                from 
-                    (select c1, install_clicked, ad_start, appversion 
-                    from cross_promo_ad_status limit ${data.limit} offset ${data.offset}) as v
-                where
-                    v.appversion = ${max_appversion}
-                group by
-                    c1
-            `;
-
-            db.query(query,(err, result) =>{
-                if (err) return res.send({error: err.message});
-        
-                const data = [];
-                result.forEach((x) =>{
-                    const ctr = {
-                        c1: x.c1,
-                        ctr: x.total_install_clicked * 100.0 / x.total_ad_start
-                    };
-                    data.push(ctr);
-                });
-    
-                res.send({
-                    latest_version: max_appversion,
-                    data: data
-                });
+            res.status(200).send({
+                data
             });
         });
     });
-})
+});
+
+router.post('/ctr/:database', async (req, res) => {
+    const database = req.params.database;
+    const version = req.body.version;
+    const limit = req.body.limit;
+    const offset = req.body.offset;
+
+    db.changeUser({
+        database: database
+    }, (err) => {
+        if (err) return res.status(400).send({error: err.message});
+
+        query = `
+            select
+                c1,
+                sum(case when install_clicked > 0 then 1 else 0 end) as total_install_clicked, 
+                sum(ad_start) as total_ad_start
+            from 
+                (select c1, install_clicked, ad_start, appversion 
+                from cross_promo_ad_status limit ${limit} offset ${offset}) as v
+            where
+                v.appversion = ${version}
+            group by
+                c1
+        `;
+
+        db.query(query,(err, result) =>{
+            if (err) return res.status(500).send({error: err.message});
+    
+            const data = [];
+            result.forEach((x) =>{
+                const ctr = {
+                    c1: x.c1,
+                    ctr: x.total_install_clicked * 100.0 / x.total_ad_start
+                };
+                data.push(ctr);
+            });
+
+            res.status(200).send({
+                data: data
+            });
+        });
+    });
+});
 
 
 router.post('/ctr', (req, res) => {
