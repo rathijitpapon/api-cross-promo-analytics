@@ -2,6 +2,53 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+router.get('/settingDBname/:dbName', (req, res) => {
+    process.env.DATABASE = req.params.dbName;
+    return res.send({});
+})
+
+router.post('/adCompletion', (req, res) => {
+    const data = req.body;
+    db.changeUser({
+        database: process.env.DATABASE
+    }, (err) => {
+        if (err) return res.send(err);
+        const query = `
+            select 
+                c1,
+                sum(case when c2 = 'QuitPromoPanel' and adshow_complete = 1 then 1 else 0 end) as total_ad_show_complete_in_quit_panel,
+                sum(case when c2 = 'MoreGamesPanel' and adshow_complete = 1 then 1 else 0 end) as total_ad_show_complete_in_more_games,
+                sum(case when c2 = 'CrossPromo' and adshow_complete = 1 then 1 else 0 end) as total_ad_show_complete_in_cross_promo
+            from 
+                (select c1, c2, adshow_complete 
+                from cross_promo_ad_status limit 20000 offset 0) as v
+            group by c1
+            `;
+        db.query(query, (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(400).send({error: err.message});
+            }
+            let c1_array = [], quit_panel_array = [], more_games_array = [], cross_promo_array = [];
+            result.forEach((item) => {
+                if (item.c1.length > 2) {
+                    c1_array.push(item.c1);
+                    quit_panel_array.push(item.total_ad_show_complete_in_quit_panel);
+                    more_games_array.push(item.total_ad_show_complete_in_more_games);
+                    cross_promo_array.push(item.total_ad_show_complete_in_cross_promo);
+                }
+            });
+            return res.send({
+                c1: c1_array,
+                total_ad_show_complete_in_quit_panel: quit_panel_array,
+                total_ad_show_complete_in_more_games: more_games_array,
+                total_ad_show_complete_in_cross_promo: cross_promo_array
+            });
+        })
+    })
+
+})
+
 router.post('/versions/:database', async (req, res) => {
     const database = req.params.database;
     const limit = req.body.limit;
@@ -27,10 +74,10 @@ router.post('/versions/:database', async (req, res) => {
         `;
 
         db.query(query, (err, result) => {
-            if(err) return res.status(500).send({error: err.message});
-            
+            if (err) return res.status(500).send({error: err.message});
+
             const data = [];
-            result.forEach((x) =>{
+            result.forEach((x) => {
                 const versionData = {
                     version: x.appversion,
                     user_count: x.user_count
@@ -70,11 +117,11 @@ router.post('/otherctr/:database', async (req, res) => {
                 c1
         `;
 
-        db.query(query,(err, result) =>{
+        db.query(query, (err, result) => {
             if (err) return res.status(500).send({error: err.message});
-    
+
             const data = [];
-            result.forEach((x) =>{
+            result.forEach((x) => {
                 const ctr = {
                     c1: x.c1,
                     ctr: x.total_install_clicked * 100.0 / x.total_ad_start
