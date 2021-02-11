@@ -2,6 +2,52 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+router.post('/ctrwrtsrc/:database', (req, res) => {
+    db.changeUser({
+        database: database
+    }, (err) => {
+        const query = `
+            select 
+                c1,
+                sum(case when c2 = 'QuitPromoPanel' then ad_start else 0 end) as total_ad_start_in_quit_panel,
+                sum(case when c2 = 'MoreGamesPanel' then ad_start else 0 end) as total_ad_start_in_more_games,
+                sum(case when c2 = 'CrossPromo' then ad_start else 0 end) as total_ad_start_in_cross_promo,
+                sum(case when c2 = 'QuitPromoPanel' and install_clicked > 0 then 1 else 0 end) as total_install_clicked_in_quit_panel,
+                sum(case when c2 = 'MoreGamesPanel' and install_clicked > 0 then 1 else 0 end) as total_install_clicked_in_more_games,
+                sum(case when c2 = 'CrossPromo' and install_clicked > 0 then 1 else 0 end) as total_install_clicked_in_cross_promo
+            from 
+                (select c1, c2, ad_start, install_clicked
+                from cross_promo_ad_status limit 20000 offset 0) as v
+            group by c1
+            `;
+        db.query(query, (err, result) =>{
+            if(err) {
+                console.log(err);
+                return res.status(400).send({error: err.message});
+            }
+            let c1_array =[], quit_panel_array = [], more_games_array = [], cross_promo_array = [];
+            result.forEach((item) =>{
+                if(item.c1.length > 2){
+                    c1_array.push(item.c1);
+                    if(item.total_ad_start_in_quit_panel === 0) quit_panel_array.push(0);
+                    else quit_panel_array.push(item.total_install_clicked_in_quit_panel * 100.0 / item.total_ad_start_in_quit_panel);
+                    if(item.total_ad_start_in_more_games === 0) more_games_array.push(0);
+                    else more_games_array.push(item.total_install_clicked_in_more_games * 100.0 / item.total_ad_start_in_more_games);
+                    if(item.total_ad_start_in_cross_promo === 0) cross_promo_array.push(0);
+                    cross_promo_array.push(item.total_install_clicked_in_cross_promo * 100.0 / item.total_ad_start_in_cross_promo);
+                }
+            });
+            return res.send({
+                c1: c1_array,
+                ctr_in_quit_panel: quit_panel_array,
+                ctr_in_more_games : more_games_array,
+                ctr_in_cross_promo : cross_promo_array
+            });
+        })
+    })
+})
+
+
 router.post('/adCompletion/:database', (req, res) => {
     const data = req.body;
     const database = req.params.database;
