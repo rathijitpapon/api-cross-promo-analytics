@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
-router.post('/ctrwrtsrc/:database', (req, res) => {
+router.get('/ctrwrtsrc/:database', (req, res) => {
     db.changeUser({
-        database: database
+        database: req.params.database
     }, (err) => {
         const query = `
             select 
