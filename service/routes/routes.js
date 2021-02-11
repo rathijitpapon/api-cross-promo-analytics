@@ -2,17 +2,14 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
-router.get('/settingDBname/:dbName', (req, res) => {
-    process.env.DATABASE = req.params.dbName;
-    return res.send({});
-})
-
-router.post('/adCompletion', (req, res) => {
+router.post('/adCompletion/:database', (req, res) => {
     const data = req.body;
+    const database = req.params.database;
+
     db.changeUser({
-        database: process.env.DATABASE
+        database: database
     }, (err) => {
-        if (err) return res.send(err);
+        if (err) return res.status(400).send(err);
         const query = `
             select 
                 c1,
@@ -26,8 +23,7 @@ router.post('/adCompletion', (req, res) => {
             `;
         db.query(query, (err, result) => {
             if (err) {
-                console.log(err);
-                return res.status(400).send({error: err.message});
+                return res.status(500).send({error: err.message});
             }
             let c1_array = [], quit_panel_array = [], more_games_array = [], cross_promo_array = [];
             result.forEach((item) => {
@@ -38,7 +34,7 @@ router.post('/adCompletion', (req, res) => {
                     cross_promo_array.push(item.total_ad_show_complete_in_cross_promo);
                 }
             });
-            return res.send({
+            return res.status(200).send({
                 c1: c1_array,
                 total_ad_show_complete_in_quit_panel: quit_panel_array,
                 total_ad_show_complete_in_more_games: more_games_array,
