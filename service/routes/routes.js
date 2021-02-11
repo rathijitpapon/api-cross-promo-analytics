@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
-router.get('/adCompletion/:dbName', (req, res) => {
+router.get('/settingDBname/:dbName', (req, res) => {
     process.env.DATABASE = req.params.dbName;
     return res.send({});
 })
