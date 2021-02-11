@@ -45,7 +45,7 @@ router.post('/versions/:database', async (req, res) => {
     });
 });
 
-router.post('/ctr/:database', async (req, res) => {
+router.post('/otherctr/:database', async (req, res) => {
     const database = req.params.database;
     const version = req.body.version;
     const limit = req.body.limit;
@@ -84,6 +84,43 @@ router.post('/ctr/:database', async (req, res) => {
 
             res.status(200).send({
                 data: data
+            });
+        });
+    });
+});
+
+router.post('/thisctr/:database', async (req, res) => {
+    const database = req.params.database;
+    const limit = req.body.limit;
+    const offset = req.body.offset;
+    const c1 = req.body.c1;
+
+    db.changeUser({
+        database: database
+    }, (err) => {
+        if (err) return res.status(400).send({error: err.message});
+
+        query = `
+            select
+                sum(case when install_clicked > 0 then 1 else 0 end) as total_install_clicked, 
+                sum(ad_start) as total_ad_start
+            from 
+                (select c1, install_clicked, ad_start, appversion 
+                from cross_promo_ad_status limit ${limit} offset ${offset}) as v
+            where
+                v.c1 = '${c1}'
+        `;
+
+        db.query(query,(err, result) =>{
+            if (err) return res.status(500).send({error: err.message});
+    
+            let ctr = 0;
+            result.forEach((x) =>{
+                ctr = x.total_install_clicked * 100.0 / x.total_ad_start
+            });
+
+            res.status(200).send({
+                ctr: ctr
             });
         });
     });
