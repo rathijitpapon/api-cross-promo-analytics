@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
-router.post('/sourceSink/bucksStatus/:database', (req, res) => {
+router.post('/sourceSink/bucksStatus', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
