@@ -2,10 +2,52 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+router.post('/sourceSink/bucksStatus/:database', (req, res) => {
+    const dbName = req.body.db;
+    const upperLimit = req.body.upperLimit;
+    const lowerLimit = req.body.lowerLimit;
+    db.changeUser({
+        database: dbName
+    }, (err) => {
+        if(err) return res.status(400).send({error: err.message});
+        const query = `
+            select
+                userLevel,
+                count(udid) as total_users,
+                 sum(userLatestBucks) as total_bucks
+            from
+                (select userLevel, udid, userLatestBucks from paid_user_allBuckSpendEvents_battle
+                 where userLevel <= 40 and userLevel > 0 
+                 and userLatestBucks between ${lowerLimit} and ${upperLimit} limit 20000) as t
+            group by userLevel
+        `;
+        db.query(query, (err, result) =>{
+            if(err) {
+                return res.status(400).send({error:err.message});
+            }
+            console.log(result);
+            const userLevel = [], averageBucks = [];
+            result.forEach((item) => {
+                userLevel.push(item.userLevel);
+                averageBucks.push(item.total_bucks/item.total_users);
+            })
+            console.log({
+                userLevels: userLevel,
+                averageBucks: averageBucks
+            });
+            return res.send({
+                userLevels: userLevel,
+                averageBucks: averageBucks
+            });
+        })
+    })
+})
+
 router.get('/ctrwrtsrc/:database', (req, res) => {
     db.changeUser({
         database: req.params.database
     }, (err) => {
+        if(err) return res.status(400).send({error: err.message});
         const query = `
             select 
                 c1,
@@ -22,7 +64,6 @@ router.get('/ctrwrtsrc/:database', (req, res) => {
             `;
         db.query(query, (err, result) =>{
             if(err) {
-                console.log(err);
                 return res.status(400).send({error: err.message});
             }
             let c1_array =[], quit_panel_array = [], more_games_array = [], cross_promo_array = [];
