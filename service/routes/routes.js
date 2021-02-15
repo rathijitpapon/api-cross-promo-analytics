@@ -2,6 +2,254 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
+    const dbName = req.body.db;
+    const upperLimit = req.body.upperLimit;
+    const lowerLimit = req.body.lowerLimit;
+    db.changeUser({
+        database: dbName
+    }, (err) => {
+        if(err) return res.status(400).send({error: err.message});
+        const query = `
+            select
+                userLevel,
+                count(udid) as total_users,
+                sum(gaeBuckEarnAfterFight) as total_earn_AfterFight,
+                sum(gaeBuckEarnGoal) as total_earn_inGoal,
+                sum(gaeBuckEarnInAppPackChest) as total_earn_InAppPackChest,
+                sum(gaeBuckEarnInAppUSD) as total_earn_InAppUSD,
+                sum(gaeBuckEarnDailyBonus) as total_earn_DailyBonus,
+                sum(gaeBuckEarnInAppPanel) as total_earn_InAppPanel,
+                sum(gaeBuckEarninitialbuck) as total_earn_initialbuck,
+                sum(gaeBuckEarnInAppSpecialOffer) as total_earn_InAppSpecialOffer,
+                sum(gaeBuckEarndailyBonusProduct) as total_earn_dailyBonusProduct,
+                sum(gaeBuckEarnAdReward) as total_earn_AdReward,
+                sum(gaeBuckEarnSpinPanel) as total_earn_SpinPanel,
+                sum(gaeBuckEarnInApp) as total_earn_InApp,
+                sum(gaeBuckEarnOwnAdReward) as total_earn_OwnAdReward,
+                sum(gaeBuckEarnVideoAdReward) as total_earn_VideoAdReward,
+                sum(gaeBuckEarninAppMessage) as total_earn_inAppMessage,
+                sum(gaeBuckEarnVIPBenefits) as total_earn_VIPBenefits,
+                sum(gaeBuckEarnJump3Times) as total_earn_Jump3Times,
+                sum(gaeBuckEarnBestReward) as total_earn_BestReward,
+                sum(gaeBuckEarnJump3Times2x) as total_earn_Jump3Times2x,
+                sum(gaeBuckEarnJ3TGOBestReward) as total_earn_J3TGOBestReward,
+                sum(gaeBuckEarnFightWinLooseBR) as total_earn_FightWinLooseBR,
+                sum(gaeBuckEarnOwnAdVIPReward) as total_earn_OwnAdVIPReward,
+                
+                sum(gaeBucksSpendClaimWithGemsPopup) as total_spend_ClaimWithGemsPopup,
+                sum(gaeBuckSpendNursery) as total_spend_Nursery,
+                sum(gaeBuckSpendProduct) as total_spend_Product,
+                sum(gaeBuckSpendProductLand) as total_spend_ProductLand,
+                sum(gaeBucksSpendRefillEnergy) as total_spend_RefillEnergy,
+                sum(gaeBuckSpendOuter) as total_spend_Outer,
+                sum(gaeBuckSpendFarm) as total_spend_Farm,
+                sum(gaeBuckSpendSummonCard) as total_spend_SummonCard,
+                sum(gaeBucksSpendClaimWithGems) as total_spend_ClaimWithGems,
+                sum(gaeBuckSpendChallenge9Summon) as total_spend_Challenge9Summon,
+                sum(gaeBuckSpendProductEvolve) as total_spend_ProductEvolve,
+                sum(gaeBuckSpendBreedLab) as total_spend_BreedLab,
+                sum(gaeBucksSpendTodaysOffer_BuyFood) as total_spend_TodaysOffer_BuyFood,
+                sum(gaeBucksSpendTodaysOffer_BuyProduct) as total_spend_TodaysOffer_BuyProduct,
+                sum(gaeBucksSpendTodaysOffer_BuyAll) as total_spend_TodaysOffer_BuyAll,
+                sum(gaeBucksSpendDailyBonusProduct) as total_spend_DailyBonusProduct,
+                sum(gaeBucksSpendJ3TBallShop) as total_spend_J3TBallShop,
+                sum(gaeBucksSpendDailyTaskSkip) as total_spend_DailyTaskSkip,
+                sum(gaeBucksSpendLuckyGiftSpin) as total_spend_LuckyGiftSpin
+            from
+                (select 
+                    userLevel, 
+                    udid, 
+                    gaeBuckEarnAfterFight,
+                    gaeBuckEarnGoal, 
+                    gaeBuckEarnInAppPackChest,
+                    gaeBuckEarnDailyBonus,
+                    gaeBuckEarnInAppUSD,
+                    gaeBuckEarnInAppPanel,
+                    gaeBuckEarninitialbuck,
+                    gaeBuckEarnInAppSpecialOffer,
+                    gaeBuckEarndailyBonusProduct,
+                    gaeBuckEarnAdReward,
+                    gaeBuckEarnSpinPanel,
+                    gaeBuckEarnInApp,
+                    gaeBuckEarnOwnAdReward,
+                    gaeBuckEarnVideoAdReward,
+                    gaeBuckEarninAppMessage,
+                    gaeBuckEarnVIPBenefits,
+                    gaeBuckEarnJump3Times,
+                    gaeBuckEarnBestReward,
+                    gaeBuckEarnJump3Times2x,
+                    gaeBuckEarnJ3TGOBestReward,
+                    gaeBuckEarnFightWinLooseBR,
+                    gaeBuckEarnOwnAdVIPReward,
+                    
+                    gaeBucksSpendClaimWithGemsPopup,
+                    gaeBuckSpendNursery,
+                    gaeBuckSpendProduct,
+                    gaeBuckSpendProductLand,
+                    gaeBucksSpendRefillEnergy,
+                    gaeBuckSpendOuter,
+                    gaeBuckSpendFarm,
+                    gaeBuckSpendSummonCard,
+                    gaeBucksSpendClaimWithGems,
+                    gaeBuckSpendChallenge9Summon,
+                    gaeBuckSpendProductEvolve,
+                    gaeBuckSpendBreedLab,
+                    gaeBucksSpendTodaysOffer_BuyFood,
+                    gaeBucksSpendTodaysOffer_BuyProduct,
+                    gaeBucksSpendTodaysOffer_BuyAll,
+                    gaeBucksSpendDailyBonusProduct,
+                    gaeBucksSpendJ3TBallShop,
+                    gaeBucksSpendDailyTaskSkip,
+                    gaeBucksSpendLuckyGiftSpin
+                from paid_user_allBuckSpendEvents_battle
+                 where userLevel <= 40 and userLevel > 0 
+                 and userLatestBucks between ${lowerLimit} and ${upperLimit} limit 20000) as t
+            group by userLevel
+        `;
+        db.query(query, (err, result) => {
+            if(err) {
+                return res.status(400).send({error: err.message});
+            }
+            const userLevel = [];
+            const averageEarnAfterFight = [];
+            const averageEarninGoal = [];
+            const averageEarnInAppPackChest = [];
+            const averageEarnInAppUSD = [];
+            const averageEarnDailyBonus = [];
+            const averageEarnInAppPanel = [];
+            const averageEarninitialbuck = [];
+            const averageEarnInAppSpecialOffer = [];
+            const averageEarndailyBonusProduct = [];
+            const averageEarnAdReward = [];
+            const averageEarnSpinPanel = [];
+            const averageEarnInApp = [];
+            const averageEarnOwnAdReward = [];
+            const averageEarnVideoAdReward = [];
+            const averageEarninAppMessage = [];
+            const averageEarnVIPBenefits = [];
+            const averageEarnJump3Times = [];
+            const averageEarnBestReward = [];
+            const averageEarnJump3Times2x = [];
+            const averageEarnJ3TGOBestReward = [];
+            const averageEarnFightWinLooseBR = [];
+            const averageEarnOwnAdVIPReward = [];
+
+            const averageSpendClaimWithGemsPopup = [];
+            const averageSpendNursery = [];
+            const averageSpendProduct = [];
+            const averageSpendProductLand = [];
+            const averageSpendRefillEnergy = [];
+            const averageSpendOuter = [];
+            const averageSpendFarm = [];
+            const averageSpendSummonCard = [];
+            const averageSpendClaimWithGems = [];
+            const averageSpendChallenge9Summon = [];
+            const averageSpendProductEvolve = [];
+            const averageSpendBreedLab = [];
+            const averageSpendTodaysOffer_BuyFood = [];
+            const averageSpendTodaysOffer_BuyProduct = [];
+            const averageSpendTodaysOffer_BuyAll = [];
+            const averageSpendDailyBonusProduct = [];
+            const averageSpendJ3TBallShop = [];
+            const averageSpendDailyTaskSkip = [];
+            const averageSpendLuckyGiftSpin = [];
+
+
+            result.forEach((item) => {
+                userLevel.push(item.userLevel);
+                averageEarnAfterFight.push((item.total_earn_AfterFight/item.total_users).toFixed(2));
+                averageEarninGoal.push((item.total_earn_inGoal/item.total_users).toFixed(2));
+                averageEarnInAppPackChest.push((item.total_earn_InAppPackChest/item.total_users).toFixed(2));
+                averageEarnInAppUSD.push((item.total_earn_InAppUSD/item.total_users).toFixed(2));
+                averageEarnDailyBonus.push((item.total_earn_DailyBonus/item.total_users).toFixed(2));
+                averageEarnInAppPanel.push((item.total_earn_InAppPanel/item.total_users).toFixed(2));
+                averageEarninitialbuck.push((item.total_earn_initialbuck/item.total_users).toFixed(2));
+                averageEarnInAppSpecialOffer.push((item.total_earn_InAppSpecialOffer/item.total_users).toFixed(2));
+                averageEarndailyBonusProduct.push((item.total_earn_dailyBonusProduct/item.total_users).toFixed(2));
+                averageEarnAdReward.push((item.total_earn_AdReward/item.total_users).toFixed(2));
+                averageEarnSpinPanel.push((item.total_earn_SpinPanel/item.total_users).toFixed(2));
+                averageEarnInApp.push((item.total_earn_InApp/item.total_users).toFixed(2));
+                averageEarnOwnAdReward.push((item.total_earn_OwnAdReward/item.total_users).toFixed(2));
+                averageEarnVideoAdReward.push((item.total_earn_VideoAdReward/item.total_users).toFixed(2));
+                averageEarninAppMessage.push((item.total_earn_inAppMessage/item.total_users).toFixed(2));
+                averageEarnVIPBenefits.push((item.total_earn_VIPBenefits/item.total_users).toFixed(2));
+                averageEarnJump3Times.push((item.total_earn_Jump3Times/item.total_users).toFixed(2));
+                averageEarnBestReward.push((item.total_earn_BestReward/item.total_users).toFixed(2));
+                averageEarnJump3Times2x.push((item.total_earn_Jump3Times2x/item.total_users).toFixed(2));
+                averageEarnJ3TGOBestReward.push((item.total_earn_J3TGOBestReward/item.total_users).toFixed(2));
+                averageEarnFightWinLooseBR.push((item.total_earn_FightWinLooseBR/item.total_users).toFixed(2));
+                averageEarnOwnAdVIPReward.push((item.total_earn_OwnAdVIPReward/item.total_users).toFixed(2));
+
+                averageSpendClaimWithGemsPopup.push((-item.total_spend_ClaimWithGemsPopup/item.total_users).toFixed(2));
+                averageSpendNursery.push((-item.total_spend_Nursery/item.total_users).toFixed(2));
+                averageSpendProduct.push((-item.total_spend_Product/item.total_users).toFixed(2));
+                averageSpendProductLand.push((-item.total_spend_ProductLand/item.total_users).toFixed(2));
+                averageSpendRefillEnergy.push((-item.total_spend_RefillEnergy/item.total_users).toFixed(2));
+                averageSpendOuter.push((-item.total_spend_Outer/item.total_users).toFixed(2));
+                averageSpendFarm.push((-item.total_spend_Farm/item.total_users).toFixed(2));
+                averageSpendSummonCard.push((-item.total_spend_SummonCard/item.total_users).toFixed(2));
+                averageSpendClaimWithGems.push((-item.total_spend_ClaimWithGems/item.total_users).toFixed(2));
+                averageSpendChallenge9Summon.push((-item.total_spend_Challenge9Summon/item.total_users).toFixed(2));
+                averageSpendProductEvolve.push((-item.total_spend_ProductEvolve/item.total_users).toFixed(2));
+                averageSpendBreedLab.push((-item.total_spend_BreedLab/item.total_users).toFixed(2));
+                averageSpendTodaysOffer_BuyFood.push((-item.total_spend_TodaysOffer_BuyFood/item.total_users).toFixed(2));
+                averageSpendTodaysOffer_BuyProduct.push((-item.total_spend_TodaysOffer_BuyProduct/item.total_users).toFixed(2));
+                averageSpendTodaysOffer_BuyAll.push((-item.total_spend_TodaysOffer_BuyAll/item.total_users).toFixed(2));
+                averageSpendDailyBonusProduct.push((-item.total_spend_DailyBonusProduct/item.total_users).toFixed(2));
+                averageSpendJ3TBallShop.push((-item.total_spend_J3TBallShop/item.total_users).toFixed(2));
+                averageSpendDailyTaskSkip.push((-item.total_spend_DailyTaskSkip/item.total_users).toFixed(2));
+                averageSpendLuckyGiftSpin.push((-item.total_spend_LuckyGiftSpin/item.total_users).toFixed(2));
+            });
+            return res.send({
+                userLevels: userLevel,
+                averageEarnAfterFight: averageEarnAfterFight,
+                averageEarninGoal: averageEarninGoal,
+                averageEarnInAppPackChest: averageEarnInAppPackChest,
+                averageEarnInAppUSD: averageEarnInAppUSD,
+                averageEarnDailyBonus: averageEarnDailyBonus,
+                averageEarnInAppPanel: averageEarnInAppPanel,
+                averageEarninitialbuck: averageEarninitialbuck,
+                averageEarnInAppSpecialOffer: averageEarnInAppSpecialOffer,
+                averageEarndailyBonusProduct: averageEarndailyBonusProduct,
+                averageEarnAdReward: averageEarnAdReward,
+                averageEarnSpinPanel: averageEarnSpinPanel,
+                averageEarnInApp: averageEarnInApp,
+                averageEarnOwnAdReward: averageEarnOwnAdReward,
+                averageEarnVideoAdReward: averageEarnVideoAdReward,
+                averageEarninAppMessage: averageEarninAppMessage,
+                averageEarnVIPBenefits: averageEarnVIPBenefits,
+                averageEarnJump3Times: averageEarnJump3Times,
+                averageEarnBestReward: averageEarnBestReward,
+                averageEarnJump3Times2x: averageEarnJump3Times2x,
+                averageEarnJ3TGOBestReward: averageEarnJ3TGOBestReward,
+                averageEarnFightWinLooseBR: averageEarnFightWinLooseBR,
+                averageEarnOwnAdVIPReward: averageEarnOwnAdVIPReward,
+
+                averageSpendClaimWithGemsPopup: averageSpendClaimWithGemsPopup,
+                averageSpendNursery: averageSpendNursery,
+                averageSpendProduct: averageSpendProduct,
+                averageSpendProductLand: averageSpendProductLand,
+                averageSpendRefillEnergy: averageSpendRefillEnergy,
+                averageSpendOuter: averageSpendOuter,
+                averageSpendFarm: averageSpendFarm,
+                averageSpendSummonCard: averageSpendSummonCard,
+                averageSpendClaimWithGems: averageSpendClaimWithGems,
+                averageSpendChallenge9Summon: averageSpendChallenge9Summon,
+                averageSpendProductEvolve: averageSpendProductEvolve,
+                averageSpendBreedLab: averageSpendBreedLab,
+                averageSpendTodaysOffer_BuyFood: averageSpendTodaysOffer_BuyFood,
+                averageSpendTodaysOffer_BuyProduct: averageSpendTodaysOffer_BuyProduct,
+                averageSpendTodaysOffer_BuyAll: averageSpendTodaysOffer_BuyAll,
+                averageSpendDailyBonusProduct: averageSpendDailyBonusProduct,
+                averageSpendJ3TBallShop: averageSpendJ3TBallShop,
+                averageSpendDailyTaskSkip: averageSpendDailyTaskSkip,
+                averageSpendLuckyGiftSpin: averageSpendLuckyGiftSpin
+            });
+        })
+    })
+})
+
 router.post('/sourceSink/bucksStatus', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
@@ -25,15 +273,10 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
             if(err) {
                 return res.status(400).send({error:err.message});
             }
-            console.log(result);
             const userLevel = [], averageBucks = [];
             result.forEach((item) => {
                 userLevel.push(item.userLevel);
                 averageBucks.push(item.total_bucks/item.total_users);
-            })
-            console.log({
-                userLevels: userLevel,
-                averageBucks: averageBucks
             });
             return res.send({
                 userLevels: userLevel,
