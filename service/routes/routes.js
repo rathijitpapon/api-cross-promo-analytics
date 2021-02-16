@@ -103,7 +103,7 @@ router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
                     gaeBucksSpendDailyTaskSkip,
                     gaeBucksSpendLuckyGiftSpin
                 from paid_user_allBuckSpendEvents_battle
-                 where userLevel <= 40 and userLevel > 0 
+                 where userLevel <= 30 and userLevel > 0 
                  and userLatestBucks between ${lowerLimit} and ${upperLimit} limit 20000) as t
             group by userLevel
         `;
@@ -265,7 +265,7 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
                  sum(userLatestBucks) as total_bucks
             from
                 (select userLevel, udid, userLatestBucks from paid_user_allBuckSpendEvents_battle
-                 where userLevel <= 40 and userLevel > 0 
+                 where userLevel <= 30 and userLevel > 0 
                  and userLatestBucks between ${lowerLimit} and ${upperLimit} limit 20000) as t
             group by userLevel
         `;
@@ -276,7 +276,7 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
             const userLevel = [], averageBucks = [];
             result.forEach((item) => {
                 userLevel.push(item.userLevel);
-                averageBucks.push(item.total_bucks/item.total_users);
+                averageBucks.push((item.total_bucks/item.total_users).toFixed(2));
             });
             return res.send({
                 userLevels: userLevel,
