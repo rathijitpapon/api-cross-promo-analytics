@@ -2,6 +2,48 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+const limit = 20000;
+const highestUserLevel = 30;
+const lowestUserLevel = 0;
+
+router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req,res) => {
+    const dbName = req.body.db;
+    const upperLimit = req.body.upperLimit;
+    const lowerLimit = req.body.lowerLimit;
+    db.changeUser({
+        database: dbName
+    }, (err) => {
+        if(err) return res.status(400).send({error:err.message});
+        const query = `
+            select 
+                userLevel,
+                sum(BucksTotalSpend) as total_spend,
+                sum(BucksTotalEarn) as total_earn
+            from
+                (select userLevel,BucksTotalSpend,BucksTotalEarn from paid_user_allBuckSpendEvents_battle
+                where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
+                and userLatestBucks between ${lowerLimit} and ${upperLimit}
+                limit ${limit}) as t
+            group by userLevel
+        `;
+        db.query(query, (err, result) => {
+            if(err) return res.status(400).send({error:err.message});
+            const userLevel = [], totalBucksSpend = [], totalBucksEarn = [];
+            result.forEach((item) => {
+                userLevel.push(item.userLevel);
+                totalBucksSpend.push(item.total_spend);
+                totalBucksEarn.push(item.total_earn);
+            });
+
+            return res.send({
+                userLevel: userLevel,
+                totalBucksEarn: totalBucksEarn,
+                totalBucksSpend: totalBucksSpend
+            });
+        })
+    })
+})
+
 router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
@@ -34,7 +76,7 @@ router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
                 sum(gaeBuckEarnBestReward) as total_earn_BestReward,
                 sum(gaeBuckEarnJump3Times2x) as total_earn_Jump3Times2x,
                 sum(gaeBuckEarnJ3TGOBestReward) as total_earn_J3TGOBestReward,
-                sum(gaeBuckEarnFightWinLooseBR) as total_earn_FightWinLooseBR,
+--                 sum(gaeBuckEarnFightWinLooseBR) as total_earn_FightWinLooseBR,
                 sum(gaeBuckEarnOwnAdVIPReward) as total_earn_OwnAdVIPReward,
                 
                 sum(gaeBucksSpendClaimWithGemsPopup) as total_spend_ClaimWithGemsPopup,
@@ -80,7 +122,7 @@ router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
                     gaeBuckEarnBestReward,
                     gaeBuckEarnJump3Times2x,
                     gaeBuckEarnJ3TGOBestReward,
-                    gaeBuckEarnFightWinLooseBR,
+--                     gaeBuckEarnFightWinLooseBR,
                     gaeBuckEarnOwnAdVIPReward,
                     
                     gaeBucksSpendClaimWithGemsPopup,
@@ -111,6 +153,7 @@ router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
             if(err) {
                 return res.status(400).send({error: err.message});
             }
+
             const userLevel = [];
             const averageEarnAfterFight = [];
             const averageEarninGoal = [];
@@ -178,7 +221,7 @@ router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
                 averageEarnBestReward.push((item.total_earn_BestReward/item.total_users).toFixed(2));
                 averageEarnJump3Times2x.push((item.total_earn_Jump3Times2x/item.total_users).toFixed(2));
                 averageEarnJ3TGOBestReward.push((item.total_earn_J3TGOBestReward/item.total_users).toFixed(2));
-                averageEarnFightWinLooseBR.push((item.total_earn_FightWinLooseBR/item.total_users).toFixed(2));
+                averageEarnFightWinLooseBR.push((0/item.total_users).toFixed(2));
                 averageEarnOwnAdVIPReward.push((item.total_earn_OwnAdVIPReward/item.total_users).toFixed(2));
 
                 averageSpendClaimWithGemsPopup.push((-item.total_spend_ClaimWithGemsPopup/item.total_users).toFixed(2));
@@ -265,8 +308,8 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
                  sum(userLatestBucks) as total_bucks
             from
                 (select userLevel, udid, userLatestBucks from paid_user_allBuckSpendEvents_battle
-                 where userLevel <= 30 and userLevel > 0 
-                 and userLatestBucks between ${lowerLimit} and ${upperLimit} limit 20000) as t
+                 where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
+                 and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}) as t
             group by userLevel
         `;
         db.query(query, (err, result) =>{
@@ -302,7 +345,7 @@ router.get('/ctrwrtsrc/:database', (req, res) => {
                 sum(case when c2 = 'CrossPromo' and install_clicked > 0 then 1 else 0 end) as total_install_clicked_in_cross_promo
             from 
                 (select c1, c2, ad_start, install_clicked
-                from cross_promo_ad_status limit 20000 offset 0) as v
+                from cross_promo_ad_status limit ${limit} offset 0) as v
             group by c1
             `;
         db.query(query, (err, result) =>{
@@ -348,7 +391,7 @@ router.post('/adCompletion/:database', (req, res) => {
                 sum(case when c2 = 'CrossPromo' and adshow_complete = 1 then 1 else 0 end) as total_ad_show_complete_in_cross_promo
             from 
                 (select c1, c2, adshow_complete 
-                from cross_promo_ad_status limit 20000 offset 0) as v
+                from cross_promo_ad_status limit ${limit} offset 0) as v
             group by c1
             `;
         db.query(query, (err, result) => {
