@@ -2,48 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
-const limit = 20000;
-const highestUserLevel = 30;
-const lowestUserLevel = 0;
-
-router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req,res) => {
-    const dbName = req.body.db;
-    const upperLimit = req.body.upperLimit;
-    const lowerLimit = req.body.lowerLimit;
-    db.changeUser({
-        database: dbName
-    }, (err) => {
-        if(err) return res.status(400).send({error:err.message});
-        const query = `
-            select 
-                userLevel,
-                sum(BucksTotalSpend) as total_spend,
-                sum(BucksTotalEarn) as total_earn
-            from
-                (select userLevel,BucksTotalSpend,BucksTotalEarn from paid_user_allBuckSpendEvents_battle
-                where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
-                and userLatestBucks between ${lowerLimit} and ${upperLimit}
-                limit ${limit}) as t
-            group by userLevel
-        `;
-        db.query(query, (err, result) => {
-            if(err) return res.status(400).send({error:err.message});
-            const userLevel = [], totalBucksSpend = [], totalBucksEarn = [];
-            result.forEach((item) => {
-                userLevel.push(item.userLevel);
-                totalBucksSpend.push(item.total_spend);
-                totalBucksEarn.push(item.total_earn);
-            });
-
-            return res.send({
-                userLevel: userLevel,
-                totalBucksEarn: totalBucksEarn,
-                totalBucksSpend: totalBucksSpend
-            });
-        })
-    })
-})
-
 router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
