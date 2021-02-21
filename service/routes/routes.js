@@ -54,14 +54,13 @@ router.get('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
     }, (err) => {
         if(err) return res.status(400).send({error: err.message});
 
-        const query = `
+        const query1 = `
             select
                 user_level,
                 adshow_source,
-                count(distinct udid) as user_count,
                 sum(ad_show) as total_adShow
             from (
-                select user_level, udid, adshow_source, ad_show
+                select user_level, adshow_source, ad_show
                 from rewarded_ad_status
                 where 
                     user_level <= 30 and 
@@ -72,26 +71,67 @@ router.get('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
             order by user_level
         `;
 
-        db.query(query, (err, result) => {
+        db.query(query1, (err, result1) => {
             if(err) {
                 return res.status(500).send({error: err.message});
             }
 
-            const averageAdShowPerSource = [];
-            const userLevel = [];
-            result.forEach((x, ind) =>{
-                averageAdShowPerSource.push({
-                    value: +((x.total_adShow / x.user_count).toFixed(2)),
-                    source: x.adshow_source,
-                    level: x.user_level,
-                });
-                if(!userLevel.includes(x.user_level))
-                    userLevel.push(x.user_level);
-            });
+            const query2 = `
+                select
+                    user_level,
+                    count(distinct udid) as user_count
+                from (
+                    select user_level, udid
+                    from rewarded_ad_status
+                    where 
+                        user_level <= 30 and 
+                        user_level > 0
+                        limit 20000
+                ) as v
+                group by user_level
+                order by user_level
+            `;
 
-            res.status(200).send({
-                averageAdShowPerSource,
-                userLevel,
+            db.query(query2, (err, result2) => {
+                if(err) {
+                    return res.status(500).send({error: err.message});
+                }
+
+                const userCountInLevel = {};
+                const totalAdShowInLevel = {};
+
+                const averageAdShowPerSource = [];
+                const userLevel = [];
+
+                result2.forEach((x, ind) =>{
+                    if(!userLevel.includes(x.user_level)){
+                        userLevel.push(x.user_level);
+                        userCountInLevel[x.user_level] = 0;
+                        totalAdShowInLevel[x.user_level] = 0;
+                    }
+
+                    userCountInLevel[x.user_level] += x.user_count;
+                });
+
+                result1.forEach((x, ind) =>{
+                    totalAdShowInLevel[x.user_level] += x.total_adShow;
+                });
+
+                result1.forEach((x, ind) =>{
+                    const averageAdShow = totalAdShowInLevel[x.user_level] / userCountInLevel[x.user_level];
+                    const value = (x.total_adShow / totalAdShowInLevel[x.user_level]) * averageAdShow;
+
+                    averageAdShowPerSource.push({
+                        value: +(value).toFixed(2),
+                        source: x.adshow_source,
+                        level: x.user_level,
+                    });
+                });
+
+                res.status(200).send({
+                    averageAdShowPerSource,
+                    userLevel,
+                });
             });
         });
     })
