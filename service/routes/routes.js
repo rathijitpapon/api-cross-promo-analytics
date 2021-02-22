@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+
 const limit = 20000;
 const highestUserLevel = 30;
 const lowestUserLevel = 0;
@@ -43,6 +44,188 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req,res) => {
         })
     })
 })
+
+
+router.get('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
+    const database = req.params.database;
+
+    db.changeUser({
+        database
+    }, (err) => {
+        if(err) return res.status(400).send({error: err.message});
+
+        const query1 = `
+            select
+                user_level,
+                adshow_source,
+                sum(ad_show) as total_adShow
+            from (
+                select user_level, adshow_source, ad_show
+                from rewarded_ad_status
+                where 
+                    user_level <= 30 and 
+                    user_level > 0
+                    limit 20000
+            ) as v
+            group by user_level, adshow_source 
+            order by user_level
+        `;
+
+        db.query(query1, (err, result1) => {
+            if(err) {
+                return res.status(500).send({error: err.message});
+            }
+
+            const query2 = `
+                select
+                    user_level,
+                    count(distinct udid) as user_count
+                from (
+                    select user_level, udid
+                    from rewarded_ad_status
+                    where 
+                        user_level <= 30 and 
+                        user_level > 0
+                        limit 20000
+                ) as v
+                group by user_level
+                order by user_level
+            `;
+
+            db.query(query2, (err, result2) => {
+                if(err) {
+                    return res.status(500).send({error: err.message});
+                }
+
+                const userCountInLevel = {};
+                const totalAdShowInLevel = {};
+
+                const averageAdShowPerSource = [];
+                const userLevel = [];
+
+                result2.forEach((x, ind) =>{
+                    if(!userLevel.includes(x.user_level)){
+                        userLevel.push(x.user_level);
+                        userCountInLevel[x.user_level] = 0;
+                        totalAdShowInLevel[x.user_level] = 0;
+                    }
+
+                    userCountInLevel[x.user_level] += x.user_count;
+                });
+
+                result1.forEach((x, ind) =>{
+                    totalAdShowInLevel[x.user_level] += x.total_adShow;
+                });
+
+                result1.forEach((x, ind) =>{
+                    const averageAdShow = totalAdShowInLevel[x.user_level] / userCountInLevel[x.user_level];
+                    const value = (x.total_adShow / totalAdShowInLevel[x.user_level]) * averageAdShow;
+
+                    averageAdShowPerSource.push({
+                        value: +(value).toFixed(2),
+                        source: x.adshow_source,
+                        level: x.user_level,
+                    });
+                });
+
+                res.status(200).send({
+                    averageAdShowPerSource,
+                    userLevel,
+                });
+            });
+        });
+    })
+});
+
+router.get('/sourceSink/columns/:database', (req, res) => {
+    const database = req.params.database;
+
+    db.changeUser({
+        database
+    }, (err) => {
+        if(err) return res.status(400).send({error: err.message});
+
+        const query = 'SHOW COLUMNS FROM paid_user_allBuckSpendEvents_battle';
+        db.query(query, (err, result) => {
+            if(err) {
+                return res.status(500).send({error: err.message});
+            }
+
+            spendCol = [];
+            earnCol = [];
+            result.forEach((x) =>{
+                if(x.Field.includes("gae") && x.Field.includes("Spend"))
+                    spendCol.push(x.Field)
+                else if(x.Field.includes("gae") && x.Field.includes("Earn"))
+                    earnCol.push(x.Field);
+            });
+
+            res.status(200).send({
+                spendCol,
+                earnCol
+            });
+        });
+    })
+})
+
+router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
+    const database = req.params.database;
+    const upperLimit = req.body.upperLimit;
+    const lowerLimit = req.body.lowerLimit;
+
+    db.changeUser({
+        database
+    }, (err) => {
+        if(err) return res.status(400).send({error: err.message});
+
+        const query = `
+            select
+                userLevel, 
+                count(distinct udid) as user_count,
+                sum(BucksTotalSpend) as bucksTotalSpend,
+                sum(BucksTotalEarn) as bucksTotalEarn
+            from (
+                select userLevel, udid, BucksTotalSpend, BucksTotalEarn
+                from paid_user_allBuckSpendEvents_battle
+                where 
+                    userLevel <= 30 and 
+                    userLevel > 0 and 
+                    userLatestBucks between ${lowerLimit} and ${upperLimit} 
+                    limit 20000
+            ) as v
+            group by userLevel
+        `;
+
+        db.query(query, (err, result) => {
+            if(err) {
+                return res.status(500).send({error: err.message});
+            }
+
+            const averageBucksSpend = [];
+            const averageBucksEarn = [];
+            const userLevel = [];
+            result.forEach((x, ind) =>{
+                averageBucksSpend.push(+((x.bucksTotalSpend / x.user_count).toFixed(2)));
+                averageBucksEarn.push(+((x.bucksTotalEarn /  x.user_count).toFixed(2)));
+                userLevel.push(x.userLevel);
+            });
+
+            for (let i = 1; i < averageBucksSpend.length; i++) {
+                averageBucksSpend[i] += averageBucksSpend[i - 1];
+            }
+            for (let i = 1; i < averageBucksEarn.length; i++) {
+                averageBucksEarn[i] += averageBucksEarn[i - 1];
+            }
+
+            res.status(200).send({
+                averageBucksSpend,
+                averageBucksEarn,
+                userLevel,
+            });
+        });
+    })
+})
+
 
 router.post('/sourceSink/bucksSpendAndEarning',(req,res) =>{
     const dbName = req.body.db;
