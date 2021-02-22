@@ -73,20 +73,23 @@ router.post('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
             select
                 user_level,
                 adshow_source,
-                sum(ad_show) as total_adShow,
-                time_stamp,
-                adid
+                sum(ad_show) as total_adShow
             from (
-                select user_level, adshow_source, ad_show, time_stamp, adid
+                select 
+                    user_level, 
+                    adshow_source, 
+                    ad_show, 
+                    time_stamp, 
+                    adid
                 from rewarded_ad_status
                 where 
                     user_level <= 30 and 
                     user_level > 0 
-                    limit 20000
+                limit 20000
             ) as v
             where 
-                time_stamp >= '${timestamp}' and
-                adid >= ${left} and adid <= ${right}
+                v.time_stamp >= '${timestamp}' and
+                v.adid >= ${left} and v.adid <= ${right}
             group by user_level, adshow_source 
             order by user_level
         `;
@@ -99,20 +102,22 @@ router.post('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
             const query2 = `
                 select
                     user_level,
-                    count(distinct udid) as user_count,
-                    time_stamp,
-                    adid
+                    count(distinct udid) as user_count
                 from (
-                    select user_level, udid, time_stamp, adid
+                    select 
+                        user_level, 
+                        udid, 
+                        time_stamp, 
+                        adid
                     from rewarded_ad_status
                     where 
                         user_level <= 30 and 
                         user_level > 0 
-                        limit 20000
+                    limit 20000
                 ) as v
                 where 
-                    time_stamp >= '${timestamp}' and
-                    adid >= ${left} and adid <= ${right}
+                    v.time_stamp >= '${timestamp}' and
+                    v.adid >= ${left} and v.adid <= ${right}
                 group by user_level
                 order by user_level
             `;
