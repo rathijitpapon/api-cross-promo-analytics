@@ -46,8 +46,23 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req,res) => {
 })
 
 
-router.get('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
+router.post('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
     const database = req.params.database;
+    const reqType = req.body.reqType;
+    const hoursBefore = req.body.hoursBefore;
+
+    let left = 0, right = 1000000000000000;
+    if (reqType === 'all')
+        left = 0, right = 1000000000000000;
+    else if (reqType === 'reward')
+        left = 0, right = 99999
+    else if (reqType === 'int')
+        left = 100000, right = 1000000000000000;
+
+    let timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
+    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
 
     db.changeUser({
         database
@@ -58,15 +73,20 @@ router.get('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
             select
                 user_level,
                 adshow_source,
-                sum(ad_show) as total_adShow
+                sum(ad_show) as total_adShow,
+                time_stamp,
+                adid
             from (
-                select user_level, adshow_source, ad_show
+                select user_level, adshow_source, ad_show, time_stamp, adid
                 from rewarded_ad_status
                 where 
                     user_level <= 30 and 
-                    user_level > 0
+                    user_level > 0 
                     limit 20000
             ) as v
+            where 
+                time_stamp >= '${timestamp}' and
+                adid >= ${left} and adid <= ${right}
             group by user_level, adshow_source 
             order by user_level
         `;
@@ -79,15 +99,20 @@ router.get('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
             const query2 = `
                 select
                     user_level,
-                    count(distinct udid) as user_count
+                    count(distinct udid) as user_count,
+                    time_stamp,
+                    adid
                 from (
-                    select user_level, udid
+                    select user_level, udid, time_stamp, adid
                     from rewarded_ad_status
                     where 
                         user_level <= 30 and 
-                        user_level > 0
+                        user_level > 0 
                         limit 20000
                 ) as v
+                where 
+                    time_stamp >= '${timestamp}' and
+                    adid >= ${left} and adid <= ${right}
                 group by user_level
                 order by user_level
             `;
