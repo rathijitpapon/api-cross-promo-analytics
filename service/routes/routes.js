@@ -81,13 +81,8 @@ router.post('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
                 from rewarded_ad_status
                 where 
                     user_level <= 30 and 
-<<<<<<< HEAD
                     user_level > 0 
                     limit 20000
-=======
-                    user_level > 0
-                    limit ${limit}
->>>>>>> 4c99d32b52a1a620a15381cfcb56b99efa8ab301
             ) as v
             where 
                 time_stamp >= '${timestamp}' and
@@ -112,13 +107,8 @@ router.post('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
                     from rewarded_ad_status
                     where 
                         user_level <= 30 and 
-<<<<<<< HEAD
                         user_level > 0 
                         limit 20000
-=======
-                        user_level > 0
-                        limit ${limit}
->>>>>>> 4c99d32b52a1a620a15381cfcb56b99efa8ab301
                 ) as v
                 where 
                     time_stamp >= '${timestamp}' and
