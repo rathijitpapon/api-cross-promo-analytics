@@ -1,6 +1,9 @@
 require('dotenv').config()
+const socketio = require('socket.io');
+const http = require('http');
 
 const routes = require('./service/routes/routes');
+const adshowController = require('./service/controllers/adshowController');
 
 
 const express = require('express');
@@ -24,10 +27,21 @@ app.use(cors(corsOptions));
 
 app.use(routes);
 
+const server = http.createServer(app);
+const io = socketio(server);
+
+io.on("connect", socket => {
+    socket.on("join", async (data, cb) => {
+        socket.join(data.id);
+    });
+
+    socket.on("sendData", async (data, cb) => {
+        adshowController.averageAdShowPerSource(data, io);       
+    });
+});
+
+
 const port = process.env.PORT || 5000;
-
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running at port ${port}`);
-})
-
-
+});
