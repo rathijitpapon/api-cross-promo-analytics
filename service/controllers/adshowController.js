@@ -46,7 +46,7 @@ const averageAdShowPerSource = (data, io) => {
                 where 
                     user_level <= 30 and 
                     user_level > 0 
-                limit 20000
+                
             ) as v
             where 
                 v.time_stamp <= '${timestampMin}' and
@@ -75,7 +75,7 @@ const averageAdShowPerSource = (data, io) => {
                     where 
                         user_level <= 30 and 
                         user_level > 0 
-                    limit 20000
+                    
                 ) as v
                 where 
                     v.time_stamp <= '${timestampMin}' and
