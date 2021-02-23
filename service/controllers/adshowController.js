@@ -45,12 +45,12 @@ const averageAdShowPerSource = (data, io) => {
                 from rewarded_ad_status
                 where 
                     user_level <= 30 and 
-                    user_level > 0 
-                
+                    user_level > 0 and
+                    time_stamp <= '${timestampMin}' and
+                    time_stamp >= '${timestampMax}'
+                limit 20000
             ) as v
             where 
-                v.time_stamp <= '${timestampMin}' and
-                v.time_stamp >= '${timestampMax}' and
                 v.adid >= ${left} and v.adid <= ${right}
             group by user_level, adshow_source 
             order by user_level
@@ -74,12 +74,12 @@ const averageAdShowPerSource = (data, io) => {
                     from rewarded_ad_status
                     where 
                         user_level <= 30 and 
-                        user_level > 0 
-                    
+                        user_level > 0 and
+                        v.time_stamp <= '${timestampMin}' and
+                        v.time_stamp >= '${timestampMax}'
+                    limit 20000
                 ) as v
                 where 
-                    v.time_stamp <= '${timestampMin}' and
-                    v.time_stamp >= '${timestampMax}' and
                     v.adid >= ${left} and v.adid <= ${right}
                 group by user_level
                 order by user_level
