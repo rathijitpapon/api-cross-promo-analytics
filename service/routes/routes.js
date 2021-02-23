@@ -7,6 +7,7 @@ const limit = 20000;
 const highestUserLevel = 30;
 const lowestUserLevel = 0;
 
+
 router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
