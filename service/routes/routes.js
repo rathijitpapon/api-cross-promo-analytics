@@ -11,6 +11,14 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
+    const hoursBefore = req.body.timeSpan;
+
+    let timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
+    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+
     db.changeUser({
         database: dbName
     }, (err) => {
@@ -21,10 +29,14 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
                 sum(BucksTotalSpend) as total_spend,
                 sum(BucksTotalEarn) as total_earn
             from
-                (select userLevel,BucksTotalSpend,BucksTotalEarn from paid_user_allBuckSpendEvents_battle
+                (select 
+                    userLevel,BucksTotalSpend,BucksTotalEarn,time_stamp
+                from 
+                    paid_user_allBuckSpendEvents_battle
                 where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
                 and userLatestBucks between ${lowerLimit} and ${upperLimit}
                 limit ${limit}) as t
+                where t.time_stamp >= '${timestamp}'
             group by userLevel
         `;
         db.query(query, (err, result) => {
@@ -171,6 +183,13 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
     const database = req.body.db;
     const lowerLimit = req.body.lowerLimit;
     const upperLimit = req.body.upperLimit;
+    const hoursBefore = req.body.timeSpan;
+
+    let timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
+    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
     db.changeUser({
         database: database
     }, (err) => {
@@ -196,7 +215,7 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
             let average_earns = {}, average_spends = {};
             let query2 = `select userLevel,count(udid) as total_users`;
 
-            let query1 = `select userLevel, udid`;
+            let query1 = `select userLevel,time_stamp, udid`;
             for (let eCol of earnCol) {
                 query1 += ', ' + eCol;
                 let splitString = eCol.split('Earn');
@@ -221,6 +240,8 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
 
             query2 += `
                 from (${query1}) as t
+                where 
+                    t.time_stamp >= '${timestamp}'
                 group by userLevel`;
 
             db.query(query2, (err, result) => {
@@ -255,6 +276,13 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
     const database = req.params.database;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
+    const hoursBefore = req.body.timeSpan;
+
+    let timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
+    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
 
     db.changeUser({
         database
@@ -268,7 +296,7 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
                 sum(BucksTotalSpend) as bucksTotalSpend,
                 sum(BucksTotalEarn) as bucksTotalEarn
             from (
-                select userLevel, udid, BucksTotalSpend, BucksTotalEarn
+                select userLevel, udid, BucksTotalSpend, BucksTotalEarn, time_stamp
                 from paid_user_allBuckSpendEvents_battle
                 where 
                     userLevel <= 30 and 
@@ -276,6 +304,7 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
                     userLatestBucks between ${lowerLimit} and ${upperLimit} 
                     limit 20000
             ) as v
+            where v.time_stamp >= '${timestamp}'
             group by userLevel
         `;
 
@@ -314,6 +343,12 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
+    const hoursBefore = req.body.timeSpan;
+
+    let timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
+    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
     db.changeUser({
         database: dbName
     }, (err) => {
@@ -324,9 +359,15 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
                 count(udid) as total_users,
                  sum(userLatestBucks) as total_bucks
             from
-                (select userLevel, udid, userLatestBucks from paid_user_allBuckSpendEvents_battle
-                 where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
-                 and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}) as t
+                (select 
+                    userLevel, udid, userLatestBucks,time_stamp 
+                from 
+                    paid_user_allBuckSpendEvents_battle
+                where 
+                    userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
+                and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}) as t
+            where
+                t.time_stamp >= '${timestamp}'
             group by userLevel
         `;
         db.query(query, (err, result) => {
