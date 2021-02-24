@@ -38,6 +38,10 @@ io.on("connect", socket => {
     socket.on("sendData", async (data, cb) => {
         adshowController.averageAdShowPerSource(data, io);       
     });
+
+    socket.on("sendCompletedAdData", async (data, cb) => {
+        adshowController.averageAdRejectPerSource(data, io);       
+    });
 });
 
 
