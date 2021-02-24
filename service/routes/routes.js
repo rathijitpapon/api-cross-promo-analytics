@@ -397,7 +397,6 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
                 t.time_stamp >= '${max_timestamp}' and t.time_stamp <= '${min_timestamp}'
             group by userLevel
         `;
-        console.log(query);
         db.query(query, (err, result) => {
             if (err) {
                 return res.status(400).send({error: err.message});
