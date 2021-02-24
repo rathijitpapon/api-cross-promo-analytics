@@ -12,12 +12,18 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
-    const hoursBefore = req.body.timeSpan;
+    const minHoursBefore = req.body.minTimeSpan;
+    const maxHoursBefore = req.body.maxTimeSpan;
 
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
-    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
-    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+    timestamp = new Date(timestamp.getTime() - minHoursBefore * 60 * 60 * 1000);
+    const min_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+    timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - maxHoursBefore * 60 * 60 * 1000);
+    const max_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
 
 
     db.changeUser({
@@ -37,7 +43,8 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
                 where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
                 and userLatestBucks between ${lowerLimit} and ${upperLimit}
                 limit ${limit}) as t
-                where t.time_stamp >= '${timestamp}'
+                where 
+                    t.time_stamp >= '${max_timestamp}' and t.time_stamp  <= '${min_timestamp}'
             group by userLevel
         `;
         db.query(query, (err, result) => {
@@ -184,12 +191,18 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
     const database = req.body.db;
     const lowerLimit = req.body.lowerLimit;
     const upperLimit = req.body.upperLimit;
-    const hoursBefore = req.body.timeSpan;
+    const minHoursBefore = req.body.minTimeSpan;
+    const maxHoursBefore = req.body.maxTimeSpan;
 
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
-    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
-    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+    timestamp = new Date(timestamp.getTime() - minHoursBefore * 60 * 60 * 1000);
+    const min_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+    timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - maxHoursBefore * 60 * 60 * 1000);
+    const max_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
 
     db.changeUser({
         database: database
@@ -242,7 +255,7 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
             query2 += `
                 from (${query1}) as t
                 where 
-                    t.time_stamp >= '${timestamp}'
+                    t.time_stamp >= '${max_timestamp}' and t.time_stamp  <= '${min_timestamp}'
                 group by userLevel`;
 
             db.query(query2, (err, result) => {
@@ -277,12 +290,18 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
     const database = req.params.database;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
-    const hoursBefore = req.body.timeSpan;
+    const minHoursBefore = req.body.minTimeSpan;
+    const maxHoursBefore = req.body.maxTimeSpan;
 
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
-    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
-    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+    timestamp = new Date(timestamp.getTime() - minHoursBefore * 60 * 60 * 1000);
+    const min_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+    timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - maxHoursBefore * 60 * 60 * 1000);
+    const max_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
 
 
     db.changeUser({
@@ -305,7 +324,8 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
                     userLatestBucks between ${lowerLimit} and ${upperLimit} 
                     limit 20000
             ) as v
-            where v.time_stamp >= '${timestamp}'
+            where 
+                v.time_stamp >= '${max_timestamp}' and v.time_stamp <= '${min_timestamp}'
             group by userLevel
         `;
 
@@ -344,12 +364,18 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
-    const hoursBefore = req.body.timeSpan;
+    const minHoursBefore = req.body.minTimeSpan;
+    const maxHoursBefore = req.body.maxTimeSpan;
 
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
-    timestamp = new Date(timestamp.getTime() - hoursBefore * 60 * 60 * 1000);
-    timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+    timestamp = new Date(timestamp.getTime() - minHoursBefore * 60 * 60 * 1000);
+    const min_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+    timestamp = new Date();
+    timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
+    timestamp = new Date(timestamp.getTime() - maxHoursBefore * 60 * 60 * 1000);
+    const max_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
     db.changeUser({
         database: dbName
     }, (err) => {
@@ -368,9 +394,10 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
                     userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
                 and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}) as t
             where
-                t.time_stamp >= '${timestamp}'
+                t.time_stamp >= '${max_timestamp}' and t.time_stamp <= '${min_timestamp}'
             group by userLevel
         `;
+        console.log(query);
         db.query(query, (err, result) => {
             if (err) {
                 return res.status(400).send({error: err.message});
