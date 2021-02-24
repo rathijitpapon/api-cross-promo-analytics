@@ -7,6 +7,32 @@ const limit = 20000;
 const highestUserLevel = 30;
 const lowestUserLevel = 0;
 
+router.get('/sourceSink/bucksStatus/getVersions/:database', (req, res) => {
+    const dbName = req.params.database;
+    db.changeUser({
+        database: dbName
+    }, (err) => {
+        if(err) return res.status(400).send({error: err.message});
+        const query = `
+            select
+                distinct(appversion) as app_version
+            from
+                inapp
+        `;
+        db.query(query, (err, result) => {
+            if (err) {
+                return res.status(400).send({error: err.message});
+            }
+            const arr = [];
+            result.forEach(item => {
+                arr.push(Number(item.app_version));
+            });
+            arr.sort((a,b) => b - a);
+            return res.send(arr);
+        })
+    })
+})
+
 
 router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
     const dbName = req.body.db;
