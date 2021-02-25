@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
-
 const limit = 20000;
 const highestUserLevel = 30;
 const lowestUserLevel = 0;
@@ -32,7 +31,6 @@ router.get('/sourceSink/bucksStatus/getVersions/:database', (req, res) => {
         })
     })
 })
-
 
 router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
     const dbName = req.body.db;
@@ -101,7 +99,6 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
         })
     })
 })
-
 
 router.post('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
     const database = req.params.database;
@@ -420,7 +417,6 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
     })
 })
 
-
 router.post('/sourceSink/bucksStatus', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
@@ -529,7 +525,6 @@ router.get('/ctrwrtsrc/:database', (req, res) => {
         })
     })
 })
-
 
 router.post('/adCompletion/:database', (req, res) => {
     const data = req.body;
@@ -698,7 +693,6 @@ router.post('/thisctr/:database', async (req, res) => {
     });
 });
 
-
 router.post('/ctr', (req, res) => {
     const data = req.body;
     db.changeUser({
@@ -783,6 +777,5 @@ router.post('/ctr', (req, res) => {
         });
     });
 })
-
 
 module.exports = router;
