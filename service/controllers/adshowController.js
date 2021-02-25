@@ -6,7 +6,6 @@ const averageAdShowPerSource = (data, io) => {
     const hoursMin = data.hoursMin;
     const hoursMax = data.hoursMax;
     const dataId = data.id;
-    const appVersion = data.appVersion;
 
     let left = 0, right = 1000000000000000;
     if (reqType === 'all')
@@ -31,15 +30,6 @@ const averageAdShowPerSource = (data, io) => {
     }, (err) => {
         if (err) return {error: err.message};
 
-        let versionQuery;
-        if(appVersion === 0) {
-            versionQuery = 'os_version >= 0';
-        } else {
-            let str = '';
-            str += appVersion;
-            versionQuery = 'os_version in (' + str + ')';
-        }
-
         const query1 = `
             select
                 user_level,
@@ -54,7 +44,6 @@ const averageAdShowPerSource = (data, io) => {
                     adid
                 from rewarded_ad_status
                 where 
-                    ${versionQuery} and
                     user_level <= 30 and 
                     user_level > 0 and
                     time_stamp <= '${timestampMin}' and
@@ -84,7 +73,6 @@ const averageAdShowPerSource = (data, io) => {
                         adid
                     from rewarded_ad_status
                     where 
-                        ${versionQuery} and 
                         user_level <= 30 and 
                         user_level > 0 and
                         time_stamp <= '${timestampMin}' and
@@ -150,7 +138,6 @@ const averageAdRejectPerSource = (data, io) => {
     const hoursMin = data.hoursMin;
     const hoursMax = data.hoursMax;
     const dataId = data.id;
-    const appVersion = data.appVersion;
 
     let left = 0, right = 1000000000000000;
     if (reqType === 'all')
@@ -175,15 +162,6 @@ const averageAdRejectPerSource = (data, io) => {
     }, (err) => {
         if (err) return {error: err.message};
 
-        let versionQuery;
-        if(appVersion === 0) {
-            versionQuery = 'os_version >= 0';
-        } else {
-            let str = '';
-            str += appVersion;
-            versionQuery = 'os_version in (' + str + ')';
-        }
-
         const query1 = `
             select
                 user_level,
@@ -199,7 +177,6 @@ const averageAdRejectPerSource = (data, io) => {
                     adshow_complete
                 from rewarded_ad_status
                 where 
-                    ${versionQuery} and
                     user_level <= 30 and 
                     user_level > 0 and
                     time_stamp <= '${timestampMin}' and
@@ -229,7 +206,6 @@ const averageAdRejectPerSource = (data, io) => {
                         adid
                     from rewarded_ad_status
                     where 
-                        ${versionQuery} and
                         user_level <= 30 and 
                         user_level > 0 and
                         time_stamp <= '${timestampMin}' and

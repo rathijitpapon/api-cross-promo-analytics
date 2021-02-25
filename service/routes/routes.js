@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+
 const limit = 20000;
 const highestUserLevel = 30;
 const lowestUserLevel = 0;
@@ -32,13 +33,13 @@ router.get('/sourceSink/bucksStatus/getVersions/:database', (req, res) => {
     })
 })
 
+
 router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
     const minHoursBefore = req.body.minTimeSpan;
     const maxHoursBefore = req.body.maxTimeSpan;
-    const appVersion = req.body.appVersion;
 
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
@@ -55,15 +56,6 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
         database: dbName
     }, (err) => {
         if (err) return res.status(400).send({error: err.message});
-
-        let versionQuery;
-        if(appVersion === 0) {
-            versionQuery = 'currentAppVersion >= 0';
-        } else {
-            let str = '';
-            str += appVersion;
-            versionQuery = 'currentAppVersion in (' + str + ')';
-        }
         const query = `
             select 
                 userLevel,
@@ -75,7 +67,6 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
                 from 
                     paid_user_allBuckSpendEvents_battle
                 where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
-                and ${versionQuery}
                 and userLatestBucks between ${lowerLimit} and ${upperLimit}
                 limit ${limit}) as t
                 where 
@@ -99,6 +90,7 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
         })
     })
 })
+
 
 router.post('/sourceSink/averageAdShowPerSource/:database', (req, res) => {
     const database = req.params.database;
@@ -227,7 +219,6 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
     const upperLimit = req.body.upperLimit;
     const minHoursBefore = req.body.minTimeSpan;
     const maxHoursBefore = req.body.maxTimeSpan;
-    const appVersion = req.body.appVersion;
 
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
@@ -248,15 +239,6 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
         db.query(query, (err, result) => {
             if (err) {
                 return res.status(500).send({error: err.message});
-            }
-
-            let versionQuery;
-            if(appVersion === 0) {
-                versionQuery = 'currentAppVersion >= 0';
-            } else {
-                let str = '';
-                str += appVersion;
-                versionQuery = 'currentAppVersion in (' + str + ')';
             }
 
             let spendCol = [];
@@ -292,13 +274,9 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
             }
 
             query1 += ` 
-            from 
-                paid_user_allBuckSpendEvents_battle
-            where 
-                (${versionQuery}) and
-                userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
-                and userLatestBucks between ${lowerLimit} and ${upperLimit} 
-            limit ${limit}`;
+            from paid_user_allBuckSpendEvents_battle
+                 where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
+                 and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}`;
 
             query2 += `
                 from (${query1}) as t
@@ -340,7 +318,6 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
     const lowerLimit = req.body.lowerLimit;
     const minHoursBefore = req.body.minTimeSpan;
     const maxHoursBefore = req.body.maxTimeSpan;
-    const appVersion = req.body.appVersion;
 
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
@@ -358,14 +335,6 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
     }, (err) => {
         if (err) return res.status(400).send({error: err.message});
 
-        let versionQuery;
-        if(appVersion === 0) {
-            versionQuery = 'currentAppVersion >= 0';
-        } else {
-            let str = '';
-            str += appVersion;
-            versionQuery = 'currentAppVersion in (' + str + ')';
-        }
         const query = `
             select
                 userLevel, 
@@ -376,7 +345,6 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
                 select userLevel, udid, BucksTotalSpend, BucksTotalEarn, time_stamp
                 from paid_user_allBuckSpendEvents_battle
                 where 
-                    ${versionQuery} and
                     userLevel <= 30 and 
                     userLevel > 0 and 
                     userLatestBucks between ${lowerLimit} and ${upperLimit} 
@@ -417,13 +385,13 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
     })
 })
 
+
 router.post('/sourceSink/bucksStatus', (req, res) => {
     const dbName = req.body.db;
     const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
     const minHoursBefore = req.body.minTimeSpan;
     const maxHoursBefore = req.body.maxTimeSpan;
-    const appVersion = req.body.appVersion;
 
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
@@ -438,14 +406,6 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
         database: dbName
     }, (err) => {
         if (err) return res.status(400).send({error: err.message});
-        let versionQuery;
-        if(appVersion === 0) {
-            versionQuery = 'currentAppVersion >= 0';
-        } else {
-            let str = '';
-            str += appVersion;
-            versionQuery = 'currentAppVersion in (' + str + ')';
-        }
         const query = `
             select
                 userLevel,
@@ -453,13 +413,12 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
                  sum(userLatestBucks) as total_bucks
             from
                 (select 
-                    userLevel, udid, userLatestBucks,time_stamp
+                    userLevel, udid, userLatestBucks,time_stamp 
                 from 
                     paid_user_allBuckSpendEvents_battle
                 where 
                     userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
-                    and (${versionQuery})
-                    and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}) as t
+                and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}) as t
             where
                 t.time_stamp >= '${max_timestamp}' and t.time_stamp <= '${min_timestamp}'
             group by userLevel
@@ -525,6 +484,7 @@ router.get('/ctrwrtsrc/:database', (req, res) => {
         })
     })
 })
+
 
 router.post('/adCompletion/:database', (req, res) => {
     const data = req.body;
@@ -693,6 +653,7 @@ router.post('/thisctr/:database', async (req, res) => {
     });
 });
 
+
 router.post('/ctr', (req, res) => {
     const data = req.body;
     db.changeUser({
@@ -777,5 +738,6 @@ router.post('/ctr', (req, res) => {
         });
     });
 })
+
 
 module.exports = router;
