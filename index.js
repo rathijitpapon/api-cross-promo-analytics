@@ -10,12 +10,12 @@ const express = require('express');
 const cors=require('cors');
 
 var corsOptions = {
-    origin: "*",
+    origin: "https://fpgl-app.herokuapp.com",
 };
 
 const app = express();
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', 'https://fpgl-app.herokuapp.com');
     next();
 });
 
