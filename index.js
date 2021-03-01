@@ -1,10 +1,11 @@
 require('dotenv').config()
-const socketio = require('socket.io');
+// const socketio = require('socket.io');
 const http = require('http');
 
+const prepareRoutes = require('./service/routes/prepareRoutes');
+const resultRoutes = require('./service/routes/resultRoutes');
 const routes = require('./service/routes/routes');
-const adshowController = require('./service/controllers/adshowController');
-
+// const adshowController = require('./service/controllers/adshowController');
 
 const express = require('express');
 const cors=require('cors');
@@ -26,23 +27,25 @@ app.use(express.urlencoded({limit: '100mb', extended: true}));
 app.use(cors(corsOptions));
 
 app.use(routes);
+app.use('/prepare', prepareRoutes);
+app.use('/result', resultRoutes);
 
 const server = http.createServer(app);
-const io = socketio(server);
+// const io = socketio(server);
 
-io.on("connect", socket => {
-    socket.on("join", async (data, cb) => {
-        socket.join(data.id);
-    });
+// io.on("connect", socket => {
+//     socket.on("join", async (data, cb) => {
+//         socket.join(data.id);
+//     });
 
-    socket.on("sendData", async (data, cb) => {
-        adshowController.averageAdShowPerSource(data, io);       
-    });
+//     socket.on("sendData", async (data, cb) => {
+//         adshowController.averageAdShowPerSource(data, io);       
+//     });
 
-    socket.on("sendCompletedAdData", async (data, cb) => {
-        adshowController.averageAdRejectPerSource(data, io);       
-    });
-});
+//     socket.on("sendCompletedAdData", async (data, cb) => {
+//         adshowController.averageAdRejectPerSource(data, io);       
+//     });
+// });
 
 
 const port = process.env.PORT || 5000;
