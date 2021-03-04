@@ -111,8 +111,8 @@ router.get('/ctrwrtsrc/:database', (req, res) => {
 
 router.post('/sourceSink/bucksStatus', (req, res) => {
     const database = req.body.database;
-    const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
+    const upperLimit = req.body.upperLimit;
     const minHoursBefore = req.body.minTimeSpan;
     const maxHoursBefore = req.body.maxTimeSpan;
     const sessionID = generateID();
@@ -126,13 +126,13 @@ router.post('/sourceSink/bucksStatus', (req, res) => {
     saveData(sessionID, data);
 
     res.send(data);
-    prepareControllers.bucksStatus(database, upperLimit, lowerLimit, minHoursBefore, maxHoursBefore, sessionID);
+    prepareControllers.bucksStatus(database, lowerLimit, upperLimit, minHoursBefore, maxHoursBefore, sessionID);
 })
 
 router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
     const database = req.params.database;
-    const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
+    const upperLimit = req.body.upperLimit;
     const minHoursBefore = req.body.minTimeSpan;
     const maxHoursBefore = req.body.maxTimeSpan;
     const sessionID = generateID();
@@ -146,7 +146,7 @@ router.post('/sourceSink/averageBucksSpendAndEarning/:database', (req, res) => {
     saveData(sessionID, data);
 
     res.send(data);
-    prepareControllers.averageBucksSpendAndEarning(database, upperLimit, lowerLimit, minHoursBefore, maxHoursBefore, sessionID);
+    prepareControllers.averageBucksSpendAndEarning(database, lowerLimit, upperLimit, minHoursBefore, maxHoursBefore, sessionID);
 })
 
 router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
@@ -166,7 +166,7 @@ router.post('/sourceSink/bucksStatus/bucksSpendAndEarning', (req, res) => {
     saveData(sessionID, data);
 
     res.send(data);
-    prepareControllers.bucksSpendAndEarningStatus(database, upperLimit, lowerLimit, minHoursBefore, maxHoursBefore, sessionID);
+    prepareControllers.bucksSpendAndEarningStatus(database, lowerLimit, upperLimit, minHoursBefore, maxHoursBefore, sessionID);
 })
 
 
@@ -210,8 +210,8 @@ router.post('/sourceSink/averageAdRejectionPerSource/:database', (req, res) => {
 
 router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
     const database = req.body.database;
-    const upperLimit = req.body.upperLimit;
     const lowerLimit = req.body.lowerLimit;
+    const upperLimit = req.body.upperLimit;
     const minHoursBefore = req.body.minTimeSpan;
     const maxHoursBefore = req.body.maxTimeSpan;
     const sessionID = generateID();
@@ -225,7 +225,7 @@ router.post('/sourceSink/bucksStatus/totalSpendAndEarning', (req, res) => {
     saveData(sessionID, data);
 
     res.send(data);
-    prepareControllers.totalSpendAndEarning(database, upperLimit, lowerLimit, minHoursBefore, maxHoursBefore, sessionID);
+    prepareControllers.totalSpendAndEarning(database, lowerLimit, upperLimit, minHoursBefore, maxHoursBefore, sessionID);
 })
 
 router.get('/sourceSink/bucksStatus/getVersions/:database', (req, res) => {
@@ -241,7 +241,7 @@ router.get('/sourceSink/bucksStatus/getVersions/:database', (req, res) => {
     saveData(sessionID, data);
 
     res.send(data);
-    prepareControllers.getVersions(database);
+    prepareControllers.getVersions(database, sessionID);
 })
 
 module.exports = router;

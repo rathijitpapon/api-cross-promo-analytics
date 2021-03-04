@@ -451,7 +451,7 @@ const ctrsrcDatabase = (database, sessionID) => {
     })
 }
 
-const bucksStatus = (database, upperLimit, lowerLimit, minHoursBefore, maxHoursBefore, sessionID) => {
+const bucksStatus = (database, lowerLimit, upperLimit, minHoursBefore, maxHoursBefore, sessionID) => {
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
     timestamp = new Date(timestamp.getTime() - minHoursBefore * 60 * 60 * 1000);
@@ -479,19 +479,17 @@ const bucksStatus = (database, upperLimit, lowerLimit, minHoursBefore, maxHoursB
             select
                 userLevel,
                 count(udid) as total_users,
-                 sum(userLatestBucks) as total_bucks
-            from
-                (select 
-                    userLevel, udid, userLatestBucks,time_stamp 
-                from 
-                    paid_user_allBuckSpendEvents_battle
-                where 
-                    userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
-                and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}) as t
-            where
-                t.time_stamp >= '${max_timestamp}' and t.time_stamp <= '${min_timestamp}'
+                sum(userLatestBucks) as total_bucks
+            from 
+                paid_user_allBuckSpendEvents_battle
+            where 
+                userLevel <= 30 and 
+                userLevel > 0 and 
+                userLatestBucks between ${lowerLimit} and ${upperLimit} and time_stamp >= '${max_timestamp}' and 
+                time_stamp <= '${min_timestamp}'
             group by userLevel
         `;
+
         db.query(query, (err, result) => {
             if (err) {
                 const data = {
@@ -528,7 +526,7 @@ const bucksStatus = (database, upperLimit, lowerLimit, minHoursBefore, maxHoursB
     })
 }
 
-const averageBucksSpendAndEarning = (database, upperLimit, lowerLimit, minHoursBefore, maxHoursBefore, sessionID) => {
+const averageBucksSpendAndEarning = (database, lowerLimit, upperLimit, minHoursBefore, maxHoursBefore, sessionID) => {
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
     timestamp = new Date(timestamp.getTime() - minHoursBefore * 60 * 60 * 1000);
@@ -560,17 +558,13 @@ const averageBucksSpendAndEarning = (database, upperLimit, lowerLimit, minHoursB
                 count(distinct udid) as user_count,
                 sum(BucksTotalSpend) as bucksTotalSpend,
                 sum(BucksTotalEarn) as bucksTotalEarn
-            from (
-                select userLevel, udid, BucksTotalSpend, BucksTotalEarn, time_stamp
-                from paid_user_allBuckSpendEvents_battle
-                where 
-                    userLevel <= 30 and 
-                    userLevel > 0 and 
-                    userLatestBucks between ${lowerLimit} and ${upperLimit} 
-                    limit 20000
-            ) as v
+            from paid_user_allBuckSpendEvents_battle
             where 
-                v.time_stamp >= '${max_timestamp}' and v.time_stamp <= '${min_timestamp}'
+                userLevel <= 30 and 
+                userLevel > 0 and 
+                userLatestBucks between ${lowerLimit} and ${upperLimit} and 
+                time_stamp >= '${max_timestamp}' and 
+                time_stamp <= '${min_timestamp}'
             group by userLevel
         `;
 
@@ -671,38 +665,35 @@ const bucksSpendAndEarningStatus = (database, lowerLimit, upperLimit, minHoursBe
             let total_earns = [], total_spends = [], average_earns_strings = [], average_spends_strings = [];
             let valuesOf_average_earns = [], valuesOf_average_spends = [];
             let average_earns = {}, average_spends = {};
-            let query2 = `select userLevel,count(udid) as total_users`;
+            let query = `select userLevel,count(udid) as total_users`;
 
-            let query1 = `select userLevel,time_stamp, udid`;
             for (let eCol of earnCol) {
-                query1 += ', ' + eCol;
                 let splitString = eCol.split('Earn');
                 total_earns.push(`total_earn_${splitString[1]}`);
                 average_earns_strings.push(`averageEarn${splitString[1]}`);
-                query2 += `, sum(${eCol}) as total_earn_${splitString[1]}`;
+                query += `, sum(${eCol}) as total_earn_${splitString[1]}`;
                 valuesOf_average_earns.push([]);
             }
             for (let sCol of spendCol) {
-                query1 += ', ' + sCol;
                 let splitString = sCol.split('Spend');
                 total_spends.push(`total_spend_${splitString[1]}`);
                 average_spends_strings.push(`averageSpend${splitString[1]}`);
-                query2 += `, sum(${sCol}) as total_spend_${splitString[1]}`;
+                query += `, sum(${sCol}) as total_spend_${splitString[1]}`;
                 valuesOf_average_spends.push([]);
             }
 
-            query1 += ` 
-            from paid_user_allBuckSpendEvents_battle
-                 where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
-                 and userLatestBucks between ${lowerLimit} and ${upperLimit} limit ${limit}`;
-
-            query2 += `
-                from (${query1}) as t
+            query += `
+                from 
+                    paid_user_allBuckSpendEvents_battle
                 where 
-                    t.time_stamp >= '${max_timestamp}' and t.time_stamp  <= '${min_timestamp}'
+                    userLevel <= 30 and 
+                    userLevel > 0 and 
+                    userLatestBucks between ${lowerLimit} and ${upperLimit} and
+                    time_stamp >= '${max_timestamp}' and 
+                    time_stamp  <= '${min_timestamp}'
                 group by userLevel`;
 
-            db.query(query2, (err, result) => {
+            db.query(query, (err, result) => {
                 if (err) {
                     const data = {
                         statusCode: 500,
@@ -1027,7 +1018,7 @@ const averageAdRejectPerSource = (database, reqType, hoursMin, hoursMax, session
     })
 }
 
-const totalSpendAndEarning = (database, upperLimit, lowerLimit, minHoursBefore, maxHoursBefore, sessionID) => {
+const totalSpendAndEarning = (database, lowerLimit, upperLimit, minHoursBefore, maxHoursBefore, sessionID) => {
     let timestamp = new Date();
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
     timestamp = new Date(timestamp.getTime() - minHoursBefore * 60 * 60 * 1000);
@@ -1037,7 +1028,6 @@ const totalSpendAndEarning = (database, upperLimit, lowerLimit, minHoursBefore, 
     timestamp = new Date(timestamp.getTime() - timestamp.getTimezoneOffset() * 60000);
     timestamp = new Date(timestamp.getTime() - maxHoursBefore * 60 * 60 * 1000);
     const max_timestamp = new Date(timestamp).toISOString().replace(/T/, ' ').replace(/\..+/, '');
-
 
     db.changeUser({
         database: database
@@ -1058,16 +1048,14 @@ const totalSpendAndEarning = (database, upperLimit, lowerLimit, minHoursBefore, 
                 userLevel,
                 sum(BucksTotalSpend) as total_spend,
                 sum(BucksTotalEarn) as total_earn
-            from
-                (select 
-                    userLevel,BucksTotalSpend,BucksTotalEarn,time_stamp
-                from 
-                    paid_user_allBuckSpendEvents_battle
-                where userLevel <= ${highestUserLevel} and userLevel > ${lowestUserLevel} 
-                and userLatestBucks between ${lowerLimit} and ${upperLimit}
-                limit ${limit}) as t
-                where 
-                    t.time_stamp >= '${max_timestamp}' and t.time_stamp  <= '${min_timestamp}'
+            from 
+                paid_user_allBuckSpendEvents_battle
+            where 
+                userLevel <= 30 and 
+                userLevel > 0 and 
+                userLatestBucks between ${lowerLimit} and ${upperLimit} and
+                time_stamp >= '${max_timestamp}' and 
+                time_stamp  <= '${min_timestamp}'
             group by userLevel
         `;
         db.query(query, (err, result) => {
@@ -1108,7 +1096,7 @@ const totalSpendAndEarning = (database, upperLimit, lowerLimit, minHoursBefore, 
     })
 }
 
-const getVersions = (database) => {
+const getVersions = (database, sessionID) => {
     db.changeUser({
         database: database
     }, (err) => {
