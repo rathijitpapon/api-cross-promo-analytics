@@ -19,7 +19,7 @@ const calculateCTR = (count, offset, sessionID) => {
 
         const query = "select appversion,c1, sum(case when install_clicked > 0 then 1 else 0 end) as total_install,sum(case when ad_start > 0 then 1 else 0 end) as total_ad from (select c1,install_clicked,ad_start,appversion from cross_promo_ad_status limit " + count + " offset " + offset + ") as subquery group by appversion,c1";
 
-        db.query(query, function (err, results) {
+        db.query(query, async function (err, results) {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -108,9 +108,8 @@ const calculateCTR = (count, offset, sessionID) => {
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         });
     });
 }
@@ -141,7 +140,7 @@ const thisCTR = (database, limit, offset, c1, sessionID) => {
                 v.c1 = '${c1}'
         `;
 
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -168,9 +167,8 @@ const thisCTR = (database, limit, offset, c1, sessionID) => {
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         });
     });
 };
@@ -204,7 +202,7 @@ const otherCTR = (database, version, limit, offset, sessionID) => {
                 c1
         `;
 
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -235,9 +233,8 @@ const otherCTR = (database, version, limit, offset, sessionID) => {
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         });
     });
 };
@@ -271,7 +268,7 @@ const versionsDatabase = (database, limit, offset, sessionID) => {
             order by appversion
         `;
 
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -302,9 +299,8 @@ const versionsDatabase = (database, limit, offset, sessionID) => {
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         });
     });
 };
@@ -335,7 +331,7 @@ const adCompletionDatabase = (database, sessionID) => {
                 from cross_promo_ad_status limit 20000 offset 0) as v
             group by c1
             `;
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -370,9 +366,8 @@ const adCompletionDatabase = (database, sessionID) => {
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         })
     })
 }
@@ -406,7 +401,7 @@ const ctrsrcDatabase = (database, sessionID) => {
                 from cross_promo_ad_status limit 20000 offset 0) as v
             group by c1
             `;
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -444,9 +439,8 @@ const ctrsrcDatabase = (database, sessionID) => {
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         })
     })
 }
@@ -490,7 +484,7 @@ const bucksStatus = (database, lowerLimit, upperLimit, minHoursBefore, maxHoursB
             group by userLevel
         `;
 
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -519,9 +513,8 @@ const bucksStatus = (database, lowerLimit, upperLimit, minHoursBefore, maxHoursB
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         })
     })
 }
@@ -568,7 +561,7 @@ const averageBucksSpendAndEarning = (database, lowerLimit, upperLimit, minHoursB
             group by userLevel
         `;
 
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -608,9 +601,8 @@ const averageBucksSpendAndEarning = (database, lowerLimit, upperLimit, minHoursB
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         });
     })
 }
@@ -693,7 +685,7 @@ const bucksSpendAndEarningStatus = (database, lowerLimit, upperLimit, minHoursBe
                     time_stamp  <= '${min_timestamp}'
                 group by userLevel`;
 
-            db.query(query, (err, result) => {
+            db.query(query, async (err, result) => {
                 if (err) {
                     const data = {
                         statusCode: 500,
@@ -734,9 +726,8 @@ const bucksSpendAndEarningStatus = (database, lowerLimit, upperLimit, minHoursBe
                 };
                 saveData(sessionID, data);
                 
-                setTimeout(() => {
-                    deleteData(sessionID);
-                }, 600000);
+                await new Promise( resolve => setTimeout(resolve, 7200000) );
+                deleteData(sessionID);
             });
         });
     })
@@ -818,7 +809,7 @@ const averageAdShowPerSource = (database, reqType, hoursMin, hoursMax, sessionID
                 order by user_level
             `;
 
-            db.query(query2, (err, result2) => {
+            db.query(query2, async (err, result2) => {
                 if (err) {
                     const data = {
                         statusCode: 500,
@@ -872,9 +863,8 @@ const averageAdShowPerSource = (database, reqType, hoursMin, hoursMax, sessionID
                 };
                 saveData(sessionID, data);
                 
-                setTimeout(() => {
-                    deleteData(sessionID);
-                }, 600000);
+                await new Promise( resolve => setTimeout(resolve, 7200000) );
+                deleteData(sessionID);
             });
         });
     })
@@ -956,7 +946,7 @@ const averageAdRejectPerSource = (database, reqType, hoursMin, hoursMax, session
                 order by user_level
             `;
 
-            db.query(query2, (err, result2) => {
+            db.query(query2, async (err, result2) => {
                 if (err) {
                     const data = {
                         statusCode: 500,
@@ -1010,9 +1000,8 @@ const averageAdRejectPerSource = (database, reqType, hoursMin, hoursMax, session
                 };
                 saveData(sessionID, data);
                 
-                setTimeout(() => {
-                    deleteData(sessionID);
-                }, 600000);
+                await new Promise( resolve => setTimeout(resolve, 7200000) );
+                deleteData(sessionID);
             });
         });
     })
@@ -1058,7 +1047,7 @@ const totalSpendAndEarning = (database, lowerLimit, upperLimit, minHoursBefore, 
                 time_stamp  <= '${min_timestamp}'
             group by userLevel
         `;
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -1089,9 +1078,8 @@ const totalSpendAndEarning = (database, lowerLimit, upperLimit, minHoursBefore, 
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         })
     })
 }
@@ -1117,7 +1105,7 @@ const getVersions = (database, sessionID) => {
             from
                 inapp
         `;
-        db.query(query, (err, result) => {
+        db.query(query, async (err, result) => {
             if (err) {
                 const data = {
                     statusCode: 500,
@@ -1143,9 +1131,8 @@ const getVersions = (database, sessionID) => {
             };
             saveData(sessionID, data);
             
-            setTimeout(() => {
-                deleteData(sessionID);
-            }, 7200000);
+            await new Promise( resolve => setTimeout(resolve, 7200000) );
+            deleteData(sessionID);
         })
     })
 }

@@ -1,4 +1,5 @@
 const mysql = require('mysql');
+const util = require('util');
 require('dotenv').config()
 
 const config = mysql.createConnection({
@@ -16,5 +17,6 @@ config.connect((err) => {
     }
 });
 
+// config.query = util.promisify(config.query).bind(config);
 
 module.exports = config;
