@@ -789,23 +789,13 @@ const averageAdShowPerSource = (database, reqType, hoursMin, hoursMax, sessionID
                 user_level,
                 adshow_source,
                 sum(ad_show) as total_adShow
-            from (
-                select 
-                    user_level, 
-                    adshow_source, 
-                    ad_show, 
-                    time_stamp, 
-                    adid
-                from rewarded_ad_status
-                where 
-                    user_level <= 30 and 
-                    user_level > 0 and
-                    time_stamp <= '${timestampMin}' and
-                    time_stamp >= '${timestampMax}'
-                limit 20000
-            ) as v
+            from rewarded_ad_status
             where 
-                v.adid >= ${left} and v.adid <= ${right}
+                user_level <= 30 and 
+                user_level > 0 and
+                time_stamp <= '${timestampMin}' and
+                time_stamp >= '${timestampMax}' and
+                adid >= ${left} and adid <= ${right}
             group by user_level, adshow_source 
             order by user_level
         `;
@@ -826,22 +816,13 @@ const averageAdShowPerSource = (database, reqType, hoursMin, hoursMax, sessionID
                 select
                     user_level,
                     count(distinct udid) as user_count
-                from (
-                    select 
-                        user_level, 
-                        udid, 
-                        time_stamp, 
-                        adid
-                    from rewarded_ad_status
-                    where 
-                        user_level <= 30 and 
-                        user_level > 0 and
-                        time_stamp <= '${timestampMin}' and
-                        time_stamp >= '${timestampMax}'
-                    limit 20000
-                ) as v
+                from rewarded_ad_status
                 where 
-                    v.adid >= ${left} and v.adid <= ${right}
+                    user_level <= 30 and 
+                    user_level > 0 and
+                    time_stamp <= '${timestampMin}' and
+                    time_stamp >= '${timestampMax}' and
+                    adid >= ${left} and adid <= ${right}
                 group by user_level
                 order by user_level
             `;
@@ -946,24 +927,13 @@ const averageAdRejectPerSource = (database, reqType, hoursMin, hoursMax, session
                 user_level,
                 adshow_source,
                 (sum(ad_show) - sum(adshow_complete)) as total_adShow
-            from (
-                select 
-                    user_level, 
-                    adshow_source, 
-                    ad_show, 
-                    time_stamp, 
-                    adid,
-                    adshow_complete
-                from rewarded_ad_status
-                where 
-                    user_level <= 30 and 
-                    user_level > 0 and
-                    time_stamp <= '${timestampMin}' and
-                    time_stamp >= '${timestampMax}'
-                limit 20000
-            ) as v
+            from rewarded_ad_status
             where 
-                v.adid >= ${left} and v.adid <= ${right}
+                user_level <= 30 and 
+                user_level > 0 and
+                time_stamp <= '${timestampMin}' and
+                time_stamp >= '${timestampMax}' and
+                adid >= ${left} and adid <= ${right}
             group by user_level, adshow_source 
             order by user_level
         `;
@@ -984,22 +954,13 @@ const averageAdRejectPerSource = (database, reqType, hoursMin, hoursMax, session
                 select
                     user_level,
                     count(distinct udid) as user_count
-                from (
-                    select 
-                        user_level, 
-                        udid, 
-                        time_stamp, 
-                        adid
-                    from rewarded_ad_status
-                    where 
-                        user_level <= 30 and 
-                        user_level > 0 and
-                        time_stamp <= '${timestampMin}' and
-                        time_stamp >= '${timestampMax}'
-                    limit 20000
-                ) as v
+                from rewarded_ad_status
                 where 
-                    v.adid >= ${left} and v.adid <= ${right}
+                    user_level <= 30 and 
+                    user_level > 0 and
+                    time_stamp <= '${timestampMin}' and
+                    time_stamp >= '${timestampMax}' and
+                    adid >= ${left} and adid <= ${right}
                 group by user_level
                 order by user_level
             `;
