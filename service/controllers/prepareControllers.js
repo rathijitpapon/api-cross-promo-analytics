@@ -110,7 +110,7 @@ const calculateCTR = (count, offset, sessionID) => {
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         });
     });
 }
@@ -170,7 +170,7 @@ const thisCTR = (database, limit, offset, c1, sessionID) => {
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         });
     });
 };
@@ -237,7 +237,7 @@ const otherCTR = (database, version, limit, offset, sessionID) => {
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         });
     });
 };
@@ -304,7 +304,7 @@ const versionsDatabase = (database, limit, offset, sessionID) => {
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         });
     });
 };
@@ -372,7 +372,7 @@ const adCompletionDatabase = (database, sessionID) => {
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         })
     })
 }
@@ -446,7 +446,7 @@ const ctrsrcDatabase = (database, sessionID) => {
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         })
     })
 }
@@ -521,7 +521,7 @@ const bucksStatus = (database, lowerLimit, upperLimit, minHoursBefore, maxHoursB
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         })
     })
 }
@@ -610,7 +610,7 @@ const averageBucksSpendAndEarning = (database, lowerLimit, upperLimit, minHoursB
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         });
     })
 }
@@ -1091,7 +1091,7 @@ const totalSpendAndEarning = (database, lowerLimit, upperLimit, minHoursBefore, 
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         })
     })
 }
@@ -1145,7 +1145,7 @@ const getVersions = (database, sessionID) => {
             
             setTimeout(() => {
                 deleteData(sessionID);
-            }, 600000);
+            }, 7200000);
         })
     })
 }
